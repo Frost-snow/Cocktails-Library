@@ -3,6 +3,7 @@ package com.CocktailsLibrary.DataAccess.Helpers;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import com.CocktailsLibrary.Common.Interfaces.IEntity;
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,12 +12,13 @@ import android.database.sqlite.SQLiteOpenHelper;
  * Time: 21:19
  * To change this template use File | Settings | File Templates.
  */
-public class DbOpenHelper extends SQLiteOpenHelper {
+// TODO: (dk)
+public class DbOpenHelper<TEntity extends IEntity> extends SQLiteOpenHelper {
 
     private static final int DB_VERSION = 1;
-    private static final String DB_NAME = "test";
+    private static final String DB_NAME = "CocktailsLibraryDb";
 
-    public static final String TABLE_NAME = "users";
+    public static final String TABLE_NAME = "FROMTENTITYT";
     public static final String LOGIN = "CocktailsLibraryUser";
     public static final String PASSW = "C0CkTailSlIbRaryPaSsW0Rd";
     private static final String CREATE_TABLE = "create table " + TABLE_NAME + " ( _id integer primary key autoincrement, "
