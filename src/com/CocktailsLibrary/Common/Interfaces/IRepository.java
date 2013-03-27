@@ -4,19 +4,22 @@ import java.util.List;
 
 // Represents a repository for entity repository.
 public interface IRepository<TId extends Comparable<TId>, TEntity extends IEntity<TId>> {
-    // Defines a list to all items.
-    List<TEntity> listItems();
+    // Gets all items.
+    List<TEntity> getItems();
+
+    // Gets items count.
+    int getItemsCount();
 
     // Gets an item by specified id.
-    TEntity getById(TId id);
+    TEntity getItem(TId id);
 
-    // Saves a specified entity.
-    void save(TEntity entity);
+    // Adds item to repository.
+    void addItem(TEntity item);
+
+    // Updates a specified entity.
+    void updateItem(TEntity item);
 
     // Removes a specified entity.
-    void remove(TEntity entity);
-
-    // Creates a new entity instance.
-    void create();
+    void removeItem(TEntity item);
 }
 
