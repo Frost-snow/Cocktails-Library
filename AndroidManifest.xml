@@ -12,5 +12,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name=".UI.FavoritesView"></activity>
+        <activity android:name=".UI.GalleryView"></activity>
+        <activity android:name=".UI.LibraryView"></activity>
+        <activity android:name=".UI.ShakerView"></activity>
     </application>
 </manifest>
