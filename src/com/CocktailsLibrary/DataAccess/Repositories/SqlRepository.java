@@ -1,6 +1,7 @@
-package com.CocktailsLibrary.DataAccess.Repositories.Base;
+package com.CocktailsLibrary.DataAccess.Repositories;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import com.CocktailsLibrary.Common.Interfaces.IEntity;
@@ -21,9 +22,10 @@ import java.util.List;
  * Time: 23:36
  * To change this template use File | Settings | File Templates.
  */
-public class SqlRepositoryBase<TEntity extends IEntity<Integer>> extends SQLiteOpenHelper implements IRepositoryInt<TEntity> {
+public class SqlRepository<TEntity extends IEntity<Integer>> extends SQLiteOpenHelper implements IRepositoryInt<TEntity> {
     private static final int dbVersion = 1;
     private static final String dbName = "CocktailsLibraryDb";
+    private Class entityClass;
 
     private List<DBColumn> listColumns;
 
@@ -32,9 +34,7 @@ public class SqlRepositoryBase<TEntity extends IEntity<Integer>> extends SQLiteO
     }
 
     private String getCreateTableQuery(){
-        Class entityClass = ReflectionUtils.getGenericParameterClass(this.getClass(), 0);
-
-        Field[] fields = entityClass.getDeclaredFields();
+        Field[] fields = entityClass.getFields();
         for (Field field : fields){
             if (field.isAnnotationPresent(DBMapping.class)){
                 DBMapping dbMappingAnnotation = (DBMapping)field.getAnnotation(DBMapping.class);
@@ -64,14 +64,34 @@ public class SqlRepositoryBase<TEntity extends IEntity<Integer>> extends SQLiteO
         }
 
         sbCreateTable.append(")");
-        String DELETETHIS = sbCreateTable.toString();
+
         return sbCreateTable.toString();
     }
 
-    public SqlRepositoryBase(Context context) {
+    private TEntity createEntityInstance(){
+        TEntity entity = null;
+
+        try {
+            entity = (TEntity) entityClass.newInstance();
+        }
+        catch (InstantiationException e){
+            e.printStackTrace();
+        }
+        catch (IllegalArgumentException e){
+            e.printStackTrace();
+        }
+        catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return entity;
+    }
+
+    public SqlRepository(Context context) {
         super(context, dbName, null, dbVersion);
 
         listColumns = new ArrayList<DBColumn>();
+        entityClass = ReflectionUtils.getGenericParameterClass(this.getClass(), 0);
     }
 
     @Override
@@ -88,8 +108,31 @@ public class SqlRepositoryBase<TEntity extends IEntity<Integer>> extends SQLiteO
     }
 
     @Override
-    public List getItems() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public List<TEntity> getItems() {
+        List<TEntity> listItems = new ArrayList<TEntity>();
+        String query = "SELECT * FROM " + getTableName();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        try {
+            if (cursor.moveToFirst()){
+                do {
+                    TEntity entity = createEntityInstance();
+                    for (DBColumn column : listColumns){
+                        Field field = entity.getClass().getField(column.getName());
+                        field.set(entity, cursor.getString(cursor.getColumnIndex(column.getName())));
+                    }
+                    listItems.add(entity);
+                } while (cursor.moveToNext());
+            }
+        }
+        catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return listItems;
     }
 
     @Override

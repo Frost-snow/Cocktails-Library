@@ -13,10 +13,10 @@ import com.CocktailsLibrary.DataAccess.Helpers.DBType;
  */
 public class Cocktail implements IEntity<Integer> {
     @DBMapping(dataType = DBType.INTEGER, notNull = false)
-    private int id;
+    public int id;
 
     @DBMapping(dataType = DBType.TEXT, notNull = true)
-    private String name;
+    public String name;
 
     @Override
     public Integer getId() {
@@ -26,13 +26,5 @@ public class Cocktail implements IEntity<Integer> {
     @Override
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getName(){
-        return name;
-    }
-
-    public void setName(String name){
-        this.name = name;
     }
 }
