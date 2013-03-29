@@ -1,6 +1,8 @@
 package com.CocktailsLibrary.DataAccess.Entities;
 
 import com.CocktailsLibrary.Common.Interfaces.IEntity;
+import com.CocktailsLibrary.DataAccess.Helpers.DBMapping;
+import com.CocktailsLibrary.DataAccess.Helpers.DBType;
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,8 +12,10 @@ import com.CocktailsLibrary.Common.Interfaces.IEntity;
  * To change this template use File | Settings | File Templates.
  */
 public class Cocktail implements IEntity<Integer> {
+    @DBMapping(dataType = DBType.INTEGER, notNull = false)
     private int id;
 
+    @DBMapping(dataType = DBType.TEXT, notNull = true)
     private String name;
 
     @Override
