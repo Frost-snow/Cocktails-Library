@@ -9,18 +9,42 @@ package com.CocktailsLibrary.DataAccess.Helpers;
  */
 public class DBColumn {
     private String name;
-    private String type;
+    private DBType type;
+    private DBKey key;
+    private DBNullable nullable;
 
-    public DBColumn(String name, String type){
+    public DBColumn(String name, DBType type, DBKey key, DBNullable nullable){
         this.name = name;
         this.type = type;
+        this.key = key;
+        this.nullable = nullable;
     }
 
     public String getName(){
         return name;
     }
 
-    public String getType(){
-        return type;
+    public String getTypeExtended(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(type.toString());
+
+        if (key == DBKey.PRIMARY_KEY){
+            sb.append(" PRIMARY KEY AUTOINCREMENT");
+        } else {
+            if (key == DBKey.FOREIGN_KEY){
+                // TODO: (dk) add foreign key mechanism.
+                sb.append(" FOREIGN KEY");
+            }
+
+            if (nullable == DBNullable.NOT_NULL){
+                sb.append(" NOT NULL");
+            }
+        }
+
+        return sb.toString();
+    }
+
+    public boolean isPrimaryKey(){
+        return key == DBKey.PRIMARY_KEY;
     }
 }

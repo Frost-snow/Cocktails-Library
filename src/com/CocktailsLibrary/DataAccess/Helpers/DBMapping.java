@@ -13,5 +13,6 @@ import java.lang.annotation.*;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface DBMapping {
     DBType dataType();
-    boolean notNull();
+    DBNullable dataNullable();
+    DBKey dataKey();
 }

@@ -1,13 +1,14 @@
 package com.CocktailsLibrary.DataAccess.Repositories;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import com.CocktailsLibrary.Common.Interfaces.IEntity;
-import com.CocktailsLibrary.Common.Interfaces.IRepository;
 import com.CocktailsLibrary.Common.Interfaces.IRepositoryInt;
 import com.CocktailsLibrary.DataAccess.Helpers.DBColumn;
+import com.CocktailsLibrary.DataAccess.Helpers.DBKey;
 import com.CocktailsLibrary.DataAccess.Helpers.DBMapping;
 import com.CocktailsLibrary.DataAccess.Helpers.ReflectionUtils;
 
@@ -15,52 +16,65 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created with IntelliJ IDEA.
- * User: Volron
- * Date: 29.03.13
- * Time: 23:36
- * To change this template use File | Settings | File Templates.
+/*
+    Represents sql lite repository witch provides base data access methods.
  */
 public class SqlRepository<TEntity extends IEntity<Integer>> extends SQLiteOpenHelper implements IRepositoryInt<TEntity> {
     private static final int dbVersion = 1;
     private static final String dbName = "CocktailsLibraryDb";
     private Class entityClass;
-
     private List<DBColumn> listColumns;
 
     private String getTableName(){
-        return ReflectionUtils.getGenericParameterClass(this.getClass(), 0).getName();
+        return ReflectionUtils.stripPackageName(ReflectionUtils.stripPackageName(ReflectionUtils.getGenericParameterClass(this.getClass(), 0).getName()));
     }
 
-    private String getCreateTableQuery(){
+    private void initializeColumns(){
         Field[] fields = entityClass.getFields();
         for (Field field : fields){
             if (field.isAnnotationPresent(DBMapping.class)){
-                DBMapping dbMappingAnnotation = (DBMapping)field.getAnnotation(DBMapping.class);
-                listColumns.add(new DBColumn(field.getName(), dbMappingAnnotation.dataType().toString()
-                        + (dbMappingAnnotation.notNull() ? " NOT NULL" : "")));
+                DBMapping dbMappingAnnotation = field.getAnnotation(DBMapping.class);
+                listColumns.add(new DBColumn(field.getName(), dbMappingAnnotation.dataType(), dbMappingAnnotation.dataKey(), dbMappingAnnotation.dataNullable()));
+            }
+        }
+    }
+
+    private DBColumn getPrimaryKeyColumn(){
+        for (DBColumn column: listColumns){
+            if (column.isPrimaryKey()){
+                return column;
             }
         }
 
-        String tableName = entityClass.getName();
+        return null;
+    }
+
+    private String[] getColumnsName() {
+        String[] ColumnName = new String[listColumns.size()];
+        for(int i = 0; i <listColumns.size(); i++){
+            ColumnName[i] = listColumns.get(i).getName();
+        }
+        return ColumnName;
+    }
+
+    private String getCreateTableQuery(){
+        String tableName = getTableName();
 
         StringBuilder sbCreateTable = new StringBuilder();
         sbCreateTable.append("CREATE TABLE ")
                 .append(tableName)
                 .append(" (");
 
-        sbCreateTable.append(listColumns.get(0).getName())
-                .append(" ")
-                .append(listColumns.get(0).getType())
-                .append(" PRIMARY KEY AUTOINCREMENT");
-
-        for (int i = 1; i < listColumns.size(); i++){
+        for (int i = 0; i < listColumns.size(); i++){
             DBColumn column = listColumns.get(i);
-            sbCreateTable.append(", ")
-                    .append(column.getName())
+
+            if (i != 0) {
+                sbCreateTable.append(", ");
+            }
+
+            sbCreateTable.append(column.getName())
                     .append(" ")
-                    .append(column.getType());
+                    .append(column.getTypeExtended());
         }
 
         sbCreateTable.append(")");
@@ -87,16 +101,87 @@ public class SqlRepository<TEntity extends IEntity<Integer>> extends SQLiteOpenH
         return entity;
     }
 
+    private ContentValues convertEntityToContentValues(TEntity entity){
+        ContentValues cv = new ContentValues();
+
+        try{
+            for (DBColumn column : listColumns){
+                Field field = entityClass.getField(column.getName());
+                DBMapping dbMappingAnnotation = field.getAnnotation(DBMapping.class);
+                Object value = field.get(entity);
+
+                if (dbMappingAnnotation.dataKey() != DBKey.PRIMARY_KEY){
+                    switch (dbMappingAnnotation.dataType()){
+                        case INTEGER:
+                            cv.put(column.getName(), (Integer)value);
+                            break;
+                        case DOUBLE:
+                            cv.put(column.getName(), (Double)value);
+                            break;
+                        case TEXT:
+                            cv.put(column.getName(), (String)value);
+                            break;
+                        default:
+                            throw new NoSuchFieldException("This type is unknown");
+                    }
+                }
+            }
+        } catch (NoSuchFieldException e){
+            e.printStackTrace();
+        } catch (IllegalAccessException e){
+            e.printStackTrace();
+        }
+
+        return cv;
+    }
+
+    private TEntity createEntityByCursor(Cursor cursor){
+        TEntity entity = createEntityInstance();
+
+        try {
+            for (DBColumn column : listColumns){
+                Field field = entity.getClass().getField(column.getName());
+                DBMapping dbMappingAnnotation = field.getAnnotation(DBMapping.class);
+
+                switch (dbMappingAnnotation.dataType()) {
+                    case INTEGER:
+                        field.set(entity, cursor.getInt(cursor.getColumnIndex(column.getName())));
+                        break;
+                    case DOUBLE:
+                        field.set(entity, cursor.getDouble(cursor.getColumnIndex(column.getName())));
+                        break;
+                    case TEXT:
+                        field.set(entity, cursor.getString(cursor.getColumnIndex(column.getName())));
+                        break;
+                    default:
+                        throw new NoSuchFieldException("This type is unknown");
+                }
+            }
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return entity;
+    }
+
     public SqlRepository(Context context) {
         super(context, dbName, null, dbVersion);
 
         listColumns = new ArrayList<DBColumn>();
         entityClass = ReflectionUtils.getGenericParameterClass(this.getClass(), 0);
+
+        initializeColumns();
     }
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        sqLiteDatabase.execSQL(getCreateTableQuery());
+        try {
+            sqLiteDatabase.execSQL(getCreateTableQuery());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -112,24 +197,20 @@ public class SqlRepository<TEntity extends IEntity<Integer>> extends SQLiteOpenH
         List<TEntity> listItems = new ArrayList<TEntity>();
         String query = "SELECT * FROM " + getTableName();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
+
+        Cursor cursor = null;
 
         try {
-            if (cursor.moveToFirst()){
-                do {
-                    TEntity entity = createEntityInstance();
-                    for (DBColumn column : listColumns){
-                        Field field = entity.getClass().getField(column.getName());
-                        field.set(entity, cursor.getString(cursor.getColumnIndex(column.getName())));
-                    }
-                    listItems.add(entity);
-                } while (cursor.moveToNext());
-            }
+            cursor = db.rawQuery(query, null);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+
+        if (cursor.moveToFirst()){
+            do {
+                TEntity entity = createEntityByCursor(cursor);
+                listItems.add(entity);
+            } while (cursor.moveToNext());
         }
 
         return listItems;
@@ -141,22 +222,39 @@ public class SqlRepository<TEntity extends IEntity<Integer>> extends SQLiteOpenH
     }
 
     @Override
-    public TEntity getItem(Integer integer) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public TEntity getItem(Integer id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(getTableName(), getColumnsName(), getPrimaryKeyColumn().getName() + "=?", new String[]{id.toString()}, null, null ,null);
+
+        if (cursor != null){
+            cursor.moveToFirst();
+            return createEntityByCursor(cursor);
+        }
+
+        return null;
     }
 
     @Override
-    public void addItem(IEntity item) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void addItem(TEntity item) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues cv = convertEntityToContentValues(item);
+
+        db.insertOrThrow(getTableName(), null, cv);
+        db.close();
     }
 
     @Override
-    public void updateItem(IEntity item) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void updateItem(TEntity item) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = convertEntityToContentValues(item);
+        //db.update(db, cv,)
     }
 
     @Override
-    public void removeItem(IEntity item) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void removeItem(TEntity item) {
+        SQLiteDatabase dv = this.getWritableDatabase();
+        ContentValues cv = convertEntityToContentValues(item);
+
     }
 }
