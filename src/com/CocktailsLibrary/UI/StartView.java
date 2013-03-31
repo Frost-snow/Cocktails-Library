@@ -2,6 +2,7 @@ package com.CocktailsLibrary.UI;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -9,6 +10,7 @@ import android.widget.Button;
 import com.CocktailsLibrary.R;
 import com.CocktailsLibrary.UI.Activities.Base.ActivityBase;
 import com.CocktailsLibrary.UI.Models.Base.StartViewModel;
+import com.actionbarsherlock.view.MenuItem;
 
 public class StartView extends ActivityBase<StartViewModel> implements OnClickListener {
     private Button btnLibrary;
@@ -67,6 +69,10 @@ public class StartView extends ActivityBase<StartViewModel> implements OnClickLi
 			startActivity(fromStartActivity);
 		}
 		
+	}
+	public boolean onCreateoptionsMenu(Menu menu){
+		menu.add("Save").setIcon(com.actionbarsherlock.R.drawable.abs__btn_cab_done_default_holo_dark).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+		return true;
 	}
 		
 
