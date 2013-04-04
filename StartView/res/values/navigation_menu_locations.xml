@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+        <string-array name="navigation_menu_locations ">
+	        <item>Alcohol content</item>
+	        <item>Sugar content</item>
+	        <item>Content quantity</item>
+	        <item>Consumption time</item>
+	        <item>Preparation</item>
+	        
+        </string-array>
+    	
+</resources>

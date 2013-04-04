@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.CocktailsLibrary"
+          android:versionCode="1"
+          android:versionName="1.0">
+    <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="16"/>
+    <application android:label="@string/app_name"
+        		 android:icon="@drawable/ic_launcher">
+        <activity android:name=".UI.StartView"
+                  android:label="@string/app_name"
+                  android:theme="@style/Theme.Sherlock.Light">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".UI.FavoritesView"></activity>
+        <activity android:name=".UI.GalleryView"></activity>
+        <activity android:name=".UI.LibraryView"></activity>
+        <activity android:name=".UI.ShakerView"></activity>
+    </application>
+</manifest>
