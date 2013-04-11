@@ -18,5 +18,6 @@
         <activity android:name=".UI.GalleryView"></activity>
         <activity android:name=".UI.LibraryView"></activity>
         <activity android:name=".UI.ShakerView"></activity>
+        <activity android:name=".UI.AddCocktailView" android:theme="@style/Theme.Sherlock.Light"></activity>
     </application>
 </manifest>

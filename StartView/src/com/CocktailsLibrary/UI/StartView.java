@@ -1,7 +1,9 @@
 package com.CocktailsLibrary.UI;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
+
 import com.CocktailsLibrary.R;
 import com.CocktailsLibrary.DataAccess.Repositories.CocktailRepository;
 import com.CocktailsLibrary.UI.Activities.Base.ActivityBase;
@@ -59,15 +61,26 @@ public class StartView extends ActivityBase<StartViewModel> implements OnNavigat
         getSupportActionBar().setListNavigationCallbacks(list, this);
         onLoadLayoutsParts();
         
+        menu.add("Add").setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | 
+                MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+        
 		//Search field
 		SearchView searchView = new SearchView(getSupportActionBar().getThemedContext());
         searchView.setQueryHint("Search");
-        menu.add("Search")
+        menu.add(0,0,0,"Add")
         	.setIcon( R.drawable.abs__ic_search_api_holo_light)
         	.setActionView(searchView)
         	.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-        
-     
+		return true;
+	}
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item){
+		switch (item.getItemId()){
+		case(0):
+			Intent addCocktail = new Intent(this,AddCocktailView.class);
+			startActivity(addCocktail);
+
+		}
 		return true;
 	}
 
