@@ -30,15 +30,6 @@
     </EditText>
 
     <Button
-        android:id="@+id/btnAddCocktail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="100dp"
-        android:text="Add your cocktail to library!" />
-
-    <Button
         android:id="@+id/btnAddIngridients"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -53,5 +44,14 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/btnAddIngridients"/>
+
+    <Button
+        android:id="@+id/btnAddCocktail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="102dp"
+        android:text="Add your cocktail to library!" />
 
 </RelativeLayout>
